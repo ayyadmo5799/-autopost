@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoPost Pro — نشر تلقائي على فيسبوك</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060910; --surface: #0d1117; --card: #111820;
+  --border: #1a2535; --bh: #243550;
+  --accent: #1877f2; --adim: rgba(24,119,242,.18); --aglow: rgba(24,119,242,.35);
+  --green: #10b981; --gdim: rgba(16,185,129,.15);
+  --orange: #f59e0b; --odim: rgba(245,158,11,.15);
+  --red: #ef4444; --rdim: rgba(239,68,68,.15);
+  --purple: #8b5cf6; --pdim: rgba(139,92,246,.15);
+  --text: #e2e8f0; --muted: #4b6075; --subtle: #94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Cairo',sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* Animations */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes slideRight{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+.fade-up{animation:fadeUp .3s ease}
+
+/* Layout */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:100}
+.header-inner{max-width:1160px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:62px;gap:16px}
+.logo{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#1877f2,#0d5fc4);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.logo-name{font-size:17px;font-weight:900;letter-spacing:-.3px}
+.server-status{font-size:11px;display:flex;align-items:center;gap:5px;font-weight:700}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+nav{display:flex;gap:4px;overflow-x:auto}
+.nav-btn{padding:9px 16px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;border:none;background:none;color:var(--muted);font-family:'Cairo',sans-serif;white-space:nowrap;transition:all .2s}
+.nav-btn:hover{color:var(--subtle);background:var(--card)}
+.nav-btn.active{background:var(--adim);color:var(--accent);border:1px solid rgba(24,119,242,.25)}
+main{max-width:1160px;margin:0 auto;padding:28px 24px}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;position:relative;overflow:hidden}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:'Cairo',sans-serif;font-weight:700;font-size:14px;border:none;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,#1877f2,#0d5fc4);color:#fff;box-shadow:0 4px 16px rgba(24,119,242,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px var(--aglow)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-ghost{background:var(--card);color:var(--subtle);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--bh);color:var(--text)}
+.btn-danger{background:var(--rdim);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.btn-danger:hover{background:rgba(239,68,68,.28)}
+.btn-sm{padding:7px 14px;font-size:13px}
+.btn-xs{padding:5px 11px;font-size:12px}
+
+/* Inputs */
+.inp{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:10px;width:100%;font-family:'Cairo',sans-serif;font-size:14px;outline:none;transition:border .2s}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--adim)}
+textarea.inp{resize:vertical;min-height:110px}
+select.inp{cursor:pointer}
+label.lbl{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:8px}
+
+/* Chips */
+.chip{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:none;color:var(--muted);font-family:'Cairo',sans-serif;transition:all .2s}
+.chip.on{border-color:var(--accent);background:var(--adim);color:var(--accent)}
+
+/* Type options */
+.type-opt{display:flex;flex-direction:column;align-items:center;gap:5px;padding:14px 16px;border-radius:12px;cursor:pointer;border:2px solid var(--border);background:none;color:var(--muted);font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;transition:all .2s}
+.type-opt:hover{border-color:var(--bh)}
+.type-opt.on{border-color:var(--accent);background:var(--adim);color:var(--accent)}
+
+/* Table row */
+.row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+
+/* Status badge */
+.badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;width:100%;max-width:480px;animation:fadeUp .3s ease}
+
+/* Tabs */
+.tab-panel{display:none}.tab-panel.active{display:block;animation:fadeUp .3s ease}
+
+/* Toast */
+#toasts{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{padding:11px 22px;border-radius:12px;color:#fff;font-weight:700;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:slideRight .25s ease;pointer-events:auto}
+
+/* Spinner */
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+
+/* Empty state */
+.empty{text-align:center;padding:56px 0;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:14px}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.grid-13{display:grid;grid-template-columns:1.35fr 1fr;gap:22px}
+
+/* Responsive */
+@media(max-width:768px){
+  .grid-4{grid-template-columns:1fr 1fr}
+  .grid-2{grid-template-columns:1fr}
+  .grid-13{grid-template-columns:1fr}
+  nav .nav-btn span{display:none}
+  .hide-mobile{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- TOASTS -->
+<div id="toasts"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">📡</div>
+      <div>
+        <div class="logo-name">AutoPost Pro</div>
+        <div class="server-status">
+          <span class="dot" id="srv-dot" style="background:var(--orange)"></span>
+          <span id="srv-txt" style="color:var(--orange)">جاري الاتصال...</span>
+        </div>
+      </div>
+    </div>
+    <nav>
+      <button class="nav-btn active" data-tab="dashboard">📊 <span>الرئيسية</span></button>
+      <button class="nav-btn" data-tab="create">✍️ <span>إنشاء بوست</span></button>
+      <button class="nav-btn" data-tab="queue">📋 <span>قائمة النشر</span></button>
+      <button class="nav-btn" data-tab="pages">📄 <span>الصفحات</span></button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ══ DASHBOARD ══ -->
+  <div id="tab-dashboard" class="tab-panel active">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <h1 style="font-size:22px;font-weight:900">لوحة التحكم</h1>
+      <button class="btn btn-ghost btn-sm" onclick="loadAll()">🔄 تحديث</button>
+    </div>
+    <div class="grid-4" style="margin-bottom:22px" id="stats-grid">
+      <div class="stat-card"><div style="font-size:26px;margin-bottom:6px">📤</div><div style="font-size:30px;font-weight:900;color:var(--accent)" id="stat-today">—</div><div style="font-size:12px;color:var(--muted)">بوستات اليوم</div></div>
+      <div class="stat-card"><div style="font-size:26px;margin-bottom:6px">✅</div><div style="font-size:30px;font-weight:900;color:var(--green)" id="stat-total">—</div><div style="font-size:12px;color:var(--muted)">إجمالي منشور</div></div>
+      <div class="stat-card"><div style="font-size:26px;margin-bottom:6px">⏳</div><div style="font-size:30px;font-weight:900;color:var(--orange)" id="stat-pending">—</div><div style="font-size:12px;color:var(--muted)">في الانتظار</div></div>
+      <div class="stat-card"><div style="font-size:26px;margin-bottom:6px">📄</div><div style="font-size:30px;font-weight:900;color:var(--purple)" id="stat-pages">—</div><div style="font-size:12px;color:var(--muted)">صفحات نشطة</div></div>
+    </div>
+    <div class="grid-13">
+      <div class="card">
+        <div style="font-size:15px;font-weight:800;margin-bottom:14px">📋 آخر البوستات</div>
+        <div id="dash-posts"><div class="empty"><div class="empty-icon">📭</div>لا يوجد بوستات بعد</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div style="font-size:15px;font-weight:800;margin-bottom:12px">📄 الصفحات النشطة</div>
+          <div id="dash-pages"><div style="font-size:13px;color:var(--muted)">لا يوجد صفحات — <a href="#" onclick="goTab('pages');showAddPage()" style="color:var(--accent)">أضف الآن</a></div></div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="goTab('create')">✍️ إنشاء بوست جديد</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CREATE POST ══ -->
+  <div id="tab-create" class="tab-panel">
+    <h1 style="font-size:22px;font-weight:900;margin-bottom:22px">✍️ إنشاء بوست جديد</h1>
+    <div class="grid-13">
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Type -->
+        <div class="card">
+          <label class="lbl">نوع البوست</label>
+          <div style="display:flex;gap:10px">
+            <button class="type-opt on" data-type="text" onclick="setType('text')"><span style="font-size:22px">📝</span>نص</button>
+            <button class="type-opt" data-type="image" onclick="setType('image')"><span style="font-size:22px">🖼️</span>صورة</button>
+            <button class="type-opt" data-type="video" onclick="setType('video')"><span style="font-size:22px">🎬</span>فيديو</button>
+            <button class="type-opt" data-type="link" onclick="setType('link')"><span style="font-size:22px">🔗</span>رابط</button>
+          </div>
+        </div>
+
+        <!-- Message -->
+        <div class="card">
+          <label class="lbl">نص البوست *</label>
+          <textarea class="inp" id="post-msg" placeholder="اكتب نص البوست هنا... 🎉" oninput="document.getElementById('char-count').textContent=this.value.length"></textarea>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:left"><span id="char-count">0</span> / 2000</div>
+        </div>
+
+        <!-- Media URL -->
+        <div class="card" id="media-card" style="display:none">
+          <label class="lbl" id="media-lbl">🖼️ رابط الصورة</label>
+          <input class="inp" id="post-media" placeholder="https://example.com/image.jpg">
+          <div style="font-size:11px;color:var(--muted);margin-top:6px">الصق رابط مباشر للملف</div>
+        </div>
+
+        <!-- Link -->
+        <div class="card" id="link-card" style="display:none">
+          <label class="lbl">🔗 الرابط</label>
+          <input class="inp" id="post-link" placeholder="https://example.com/article">
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Pages selection -->
+        <div class="card">
+          <label class="lbl">📄 اختار الصفحات *</label>
+          <div id="page-select-area">
+            <div style="font-size:13px;color:var(--muted)">لا يوجد صفحات — <a href="#" onclick="goTab('pages');showAddPage()" style="color:var(--accent)">أضف صفحة</a></div>
+          </div>
+        </div>
+
+        <!-- Schedule -->
+        <div class="card">
+          <label class="lbl">⏰ موعد النشر</label>
+          <div style="display:flex;gap:10px;margin-bottom:12px">
+            <input type="date" class="inp" id="post-date" style="flex:1">
+            <input type="time" class="inp" id="post-time" value="10:00" style="flex:1">
+          </div>
+          <label class="lbl">تكرار</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="chip on" data-repeat="once" onclick="setRepeat('once')">مرة واحدة</button>
+            <button class="chip" data-repeat="daily" onclick="setRepeat('daily')">يومياً</button>
+            <button class="chip" data-repeat="weekly" onclick="setRepeat('weekly')">أسبوعياً</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px" id="add-post-btn" onclick="handleAddPost()">
+          🚀 إضافة لقائمة النشر
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ QUEUE ══ -->
+  <div id="tab-queue" class="tab-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <h1 style="font-size:22px;font-weight:900">📋 قائمة النشر</h1>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="loadAll()">🔄 تحديث</button>
+        <button class="btn btn-primary btn-sm" onclick="goTab('create')">+ بوست جديد</button>
+      </div>
+    </div>
+    <div id="queue-content"><div class="empty"><div class="empty-icon">📭</div>جاري التحميل...</div></div>
+  </div>
+
+  <!-- ══ PAGES ══ -->
+  <div id="tab-pages" class="tab-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+      <h1 style="font-size:22px;font-weight:900">📄 إدارة الصفحات</h1>
+      <button class="btn btn-primary" onclick="showAddPage()">+ إضافة صفحة</button>
+    </div>
+    <div id="pages-grid" class="grid-2"><div class="empty"><div class="empty-icon">📭</div>لا يوجد صفحات بعد</div></div>
+  </div>
+
+</main>
+
+<!-- ══ ADD PAGE MODAL ══ -->
+<div class="overlay" id="add-page-modal">
+  <div class="modal">
+    <div style="font-size:18px;font-weight:900;margin-bottom:20px">📘 إضافة صفحة فيسبوك</div>
+
+    <div style="margin-bottom:14px">
+      <label class="lbl">اسم الصفحة</label>
+      <input class="inp" id="np-name" placeholder="مثال: صفحة التقنية">
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="lbl">Page ID</label>
+      <input class="inp" id="np-id" placeholder="123456789012345">
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">من إعدادات الصفحة ← معلومات الصفحة</div>
+    </div>
+    <div style="margin-bottom:18px">
+      <label class="lbl">Page Access Token</label>
+      <input class="inp" id="np-token" placeholder="EAAx... (من Graph API Explorer)">
+    </div>
+
+    <div style="background:var(--odim);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:12px;color:var(--orange)">
+      ⚠️ تأكد إن الـ Token عنده صلاحية <strong>pages_manage_posts</strong>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1;justify-content:center" id="add-page-btn" onclick="handleAddPage()">✅ تحقق وأضف الصفحة</button>
+      <button class="btn btn-ghost" onclick="hideAddPage()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';  // نفس السيرفر — فارغ لأن الملف على نفس الدومين
+
+// ── State ──
+let state = { pages: [], queue: { pending:[], published:[] }, stats: null, selectedPages: [], postType: 'text', postRepeat: 'once' };
+
+// ── API ──
+async function apiFetch(path, opts={}) {
+  try {
+    const res = await fetch(API + path, { headers:{'Content-Type':'application/json'}, ...opts });
+    return await res.json();
+  } catch(e) { return { error: e.message }; }
+}
+
+// ── Toast ──
+function toast(msg, type='success') {
+  const el = document.createElement('div');
+  const colors = { success:'var(--green)', error:'var(--red)', warn:'var(--orange)' };
+  el.className = 'toast';
+  el.style.background = colors[type] || colors.success;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ── Nav ──
+function goTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelector(`[data-tab="${name}"]`).classList.add('active');
+}
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => goTab(btn.dataset.tab));
+});
+
+// ── Server health ──
+async function checkHealth() {
+  const r = await apiFetch('/health');
+  const dot = document.getElementById('srv-dot');
+  const txt = document.getElementById('srv-txt');
+  if (!r.error) {
+    dot.style.background = 'var(--green)'; dot.style.animation = 'pulse 2s infinite';
+    txt.style.color = 'var(--green)'; txt.textContent = 'السيرفر متصل ✓';
+  } else {
+    dot.style.background = 'var(--red)';
+    txt.style.color = 'var(--red)'; txt.textContent = 'السيرفر غير متاح ✗';
+  }
+}
+
+// ── Load all data ──
+async function loadAll() {
+  const [stats, pages, queue] = await Promise.all([
+    apiFetch('/api/stats'), apiFetch('/api/pages'), apiFetch('/api/queue')
+  ]);
+  if (!stats.error) { state.stats = stats; renderStats(); }
+  if (!pages.error) { state.pages = Array.isArray(pages) ? pages : []; renderPages(); renderPageSelect(); renderDashPages(); }
+  if (!queue.error) { state.queue = queue; renderQueue(); renderDashPosts(); }
+}
+
+// ── Render Stats ──
+function renderStats() {
+  const s = state.stats;
+  if (!s) return;
+  document.getElementById('stat-today').textContent   = s.publishedToday ?? 0;
+  document.getElementById('stat-total').textContent   = s.totalPublished  ?? 0;
+  document.getElementById('stat-pending').textContent = s.pendingPosts    ?? 0;
+  document.getElementById('stat-pages').textContent   = s.activePages     ?? 0;
+}
+
+// ── Status config ──
+const STATUS = {
+  pending:    { label:'⏳ انتظار',  bg:'var(--odim)', color:'var(--orange)' },
+  published:  { label:'✅ منشور',   bg:'var(--gdim)', color:'var(--green)'  },
+  publishing: { label:'🔄 ينشر',    bg:'var(--adim)', color:'var(--accent)' },
+  failed:     { label:'❌ فشل',     bg:'var(--rdim)', color:'var(--red)'    },
+  partial:    { label:'⚠️ جزئي',   bg:'var(--odim)', color:'var(--orange)' },
+};
+const TYPE_ICON = { text:'📝', image:'🖼️', video:'🎬', link:'🔗' };
+
+// ── Render Dashboard Posts ──
+function renderDashPosts() {
+  const el = document.getElementById('dash-posts');
+  const all = [...(state.queue.pending||[]), ...(state.queue.published||[])].slice(0,6);
+  if (!all.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>لا يوجد بوستات بعد</div>'; return; }
+  el.innerHTML = all.map(p => {
+    const st = STATUS[p.status] || STATUS.pending;
+    return `<div class="row">
+      <div style="display:flex;gap:10px;align-items:center">
+        <span style="font-size:20px">${TYPE_ICON[p.type]||'📝'}</span>
+        <div>
+          <div style="font-size:13px;font-weight:600">${(p.message||'').slice(0,42)}...</div>
+          <div style="font-size:11px;color:var(--muted)">${p.scheduleTime||''} • ${p.scheduleDate||''}</div>
+        </div>
+      </div>
+      <span class="badge" style="background:${st.bg};color:${st.color}">${st.label}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Render Dashboard Pages ──
+function renderDashPages() {
+  const el = document.getElementById('dash-pages');
+  const active = state.pages.filter(p=>p.active);
+  if (!active.length) { el.innerHTML = `<div style="font-size:13px;color:var(--muted)">لا يوجد صفحات — <a href="#" onclick="goTab('pages');showAddPage()" style="color:var(--accent)">أضف الآن</a></div>`; return; }
+  el.innerHTML = active.map(p => `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:32px;height:32px;background:linear-gradient(135deg,#1877f2,#0d5fc4);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">📘</div>
+      <div style="font-size:13px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+      <span class="dot" style="background:var(--green);flex-shrink:0"></span>
+    </div>`).join('');
+}
+
+// ── Render Queue ──
+function renderQueue() {
+  const el = document.getElementById('queue-content');
+  const pending = state.queue.pending || [];
+  const published = state.queue.published || [];
+  let html = '';
+
+  if (pending.length) {
+    html += `<div style="font-size:13px;font-weight:800;color:var(--orange);margin-bottom:10px">⏳ في الانتظار (${pending.length})</div>`;
+    html += '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">';
+    html += pending.map(p => `
+      <div class="card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:12px">
+        <div style="display:flex;gap:12px;align-items:center;flex:1;min-width:0">
+          <div style="width:42px;height:42px;background:var(--adim);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${TYPE_ICON[p.type]||'📝'}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.message||''}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:3px">⏰ ${p.scheduleTime} • 📅 ${p.scheduleDate} • ${p.repeat==='daily'?'🔁 يومياً':p.repeat==='weekly'?'🔁 أسبوعياً':'مرة واحدة'}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn btn-ghost btn-xs" onclick="publishNow(${p.id})">نشر الآن</button>
+          <button class="btn btn-danger btn-xs" onclick="deletePost(${p.id})">حذف</button>
+        </div>
+      </div>`).join('');
+    html += '</div>';
+  }
+
+  if (published.length) {
+    html += `<div style="font-size:13px;font-weight:800;color:var(--green);margin-bottom:10px">✅ منشور (${published.length})</div>`;
+    html += '<div style="display:flex;flex-direction:column;gap:10px">';
+    html += published.map(p => {
+      const st = STATUS[p.status] || STATUS.published;
+      return `<div class="card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;opacity:.8">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:42px;height:42px;background:var(--gdim);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px">${TYPE_ICON[p.type]||'📝'}</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">${(p.message||'').slice(0,55)}...</div>
+            <div style="font-size:11px;color:var(--muted)">نُشر: ${p.publishedAt ? new Date(p.publishedAt).toLocaleString('ar') : '—'}</div>
+          </div>
+        </div>
+        <span class="badge" style="background:${st.bg};color:${st.color}">${st.label}</span>
+      </div>`;
+    }).join('');
+    html += '</div>';
+  }
+
+  if (!pending.length && !published.length) {
+    html = `<div class="empty"><div class="empty-icon">📭</div><div style="font-size:16px;font-weight:700">قائمة النشر فارغة</div><button class="btn btn-primary" style="margin-top:20px" onclick="goTab('create')">+ أضف أول بوست</button></div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ── Render Pages ──
+function renderPages() {
+  const el = document.getElementById('pages-grid');
+  if (!state.pages.length) {
+    el.innerHTML = `<div class="empty" style="grid-column:span 2"><div class="empty-icon">📭</div><div style="font-size:16px;font-weight:700">لا يوجد صفحات</div><button class="btn btn-primary" style="margin-top:20px" onclick="showAddPage()">+ أضف أول صفحة</button></div>`;
+    return;
+  }
+  el.innerHTML = state.pages.map(pg => `
+    <div class="card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:46px;height:46px;background:linear-gradient(135deg,#1877f2,#0d5fc4);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">📘</div>
+          <div>
+            <div style="font-size:16px;font-weight:800">${pg.name}</div>
+            <div style="font-size:11px;color:var(--muted)">ID: ${pg.pageId}</div>
+          </div>
+        </div>
+        <span class="badge" style="background:${pg.active?'var(--gdim)':'var(--border)'};color:${pg.active?'var(--green)':'var(--muted)'}">
+          ${pg.active?'● نشطة':'○ متوقفة'}
+        </span>
+      </div>
+      <div style="background:var(--surface);border-radius:8px;padding:8px 12px;margin-bottom:14px">
+        <div style="font-size:11px;color:var(--muted)">Token</div>
+        <div style="font-size:12px;font-family:monospace;color:var(--subtle)">${(pg.token||'').slice(0,14)}••••••••</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" onclick="togglePage('${pg.id}',${pg.active})">
+          ${pg.active?'⏸ إيقاف':'▶ تفعيل'}
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deletePage('${pg.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Render Page Select in Create ──
+function renderPageSelect() {
+  const el = document.getElementById('page-select-area');
+  if (!state.pages.length) {
+    el.innerHTML = `<div style="font-size:13px;color:var(--muted)">لا يوجد صفحات — <a href="#" onclick="goTab('pages');showAddPage()" style="color:var(--accent)">أضف صفحة</a></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="chip on" onclick="state.selectedPages=state.pages.map(p=>p.id);renderPageSelect()">الكل</button>
+      <button class="chip" onclick="state.selectedPages=[];renderPageSelect()">مسح</button>
+    </div>
+    ${state.pages.map(pg => `
+    <div class="row" style="padding:10px 0">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="width:28px;height:28px;background:linear-gradient(135deg,#1877f2,#0d5fc4);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px">📘</div>
+        <div style="font-size:13px;font-weight:600">${pg.name}${!pg.active?'<div style="font-size:11px;color:var(--red)">متوقفة</div>':''}</div>
+      </div>
+      <button class="chip ${state.selectedPages.includes(pg.id)?'on':''}" onclick="toggleSelectPage('${pg.id}')">
+        ${state.selectedPages.includes(pg.id)?'✓ مختارة':'+'}
+      </button>
+    </div>`).join('')}`;
+}
+
+// ── Post type ──
+function setType(type) {
+  state.postType = type;
+  document.querySelectorAll('.type-opt').forEach(b => b.classList.toggle('on', b.dataset.type === type));
+  document.getElementById('media-card').style.display = (type==='image'||type==='video') ? 'block' : 'none';
+  document.getElementById('link-card').style.display  = type==='link' ? 'block' : 'none';
+  if (type==='image') { document.getElementById('media-lbl').textContent='🖼️ رابط الصورة'; document.getElementById('post-media').placeholder='https://example.com/image.jpg'; }
+  if (type==='video') { document.getElementById('media-lbl').textContent='🎬 رابط الفيديو'; document.getElementById('post-media').placeholder='https://example.com/video.mp4'; }
+}
+
+function setRepeat(r) {
+  state.postRepeat = r;
+  document.querySelectorAll('[data-repeat]').forEach(b => b.classList.toggle('on', b.dataset.repeat === r));
+}
+
+function toggleSelectPage(id) {
+  state.selectedPages = state.selectedPages.includes(id) ? state.selectedPages.filter(x=>x!==id) : [...state.selectedPages, id];
+  renderPageSelect();
+}
+
+// ── Add Post ──
+async function handleAddPost() {
+  const msg  = document.getElementById('post-msg').value.trim();
+  const time = document.getElementById('post-time').value;
+  const date = document.getElementById('post-date').value;
+  if (!msg)  return toast('اكتب نص البوست!', 'error');
+  if (!state.selectedPages.length) return toast('اختار صفحة واحدة على الأقل!', 'error');
+
+  const btn = document.getElementById('add-post-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> جاري الإضافة...';
+
+  const body = {
+    type: state.postType, message: msg,
+    mediaUrl: document.getElementById('post-media')?.value || '',
+    link: document.getElementById('post-link')?.value || '',
+    scheduleTime: time, scheduleDate: date, repeat: state.postRepeat,
+    pageIds: JSON.stringify(state.selectedPages)
+  };
+
+  const res = await apiFetch('/api/queue', { method:'POST', body: JSON.stringify(body) });
+  btn.disabled = false; btn.innerHTML = '🚀 إضافة لقائمة النشر';
+
+  if (res.error) return toast('حصل خطأ: ' + res.error, 'error');
+  toast('✅ تم إضافة البوست لقائمة النشر');
+  document.getElementById('post-msg').value = '';
+  document.getElementById('char-count').textContent = '0';
+  state.selectedPages = [];
+  goTab('queue'); loadAll();
+}
+
+// ── Publish Now ──
+async function publishNow(id) {
+  toast('🔄 جاري النشر...', 'warn');
+  const res = await apiFetch(`/api/queue/${id}/publish-now`, { method:'POST' });
+  if (res.error) return toast('فشل النشر!', 'error');
+  const ok = (res.results||[]).filter(r=>r.success).length;
+  const fail = (res.results||[]).filter(r=>!r.success).length;
+  if (ok) toast(`✅ نُشر على ${ok} صفحة بنجاح`);
+  if (fail) toast(`⚠️ فشل النشر على ${fail} صفحة`, 'warn');
+  loadAll();
+}
+
+// ── Delete Post ──
+async function deletePost(id) {
+  await apiFetch(`/api/queue/${id}`, { method:'DELETE' });
+  loadAll();
+}
+
+// ── Page actions ──
+async function togglePage(id, active) {
+  await apiFetch(`/api/pages/${id}`, { method:'PATCH', body: JSON.stringify({ active: !active }) });
+  loadAll();
+}
+async function deletePage(id) {
+  if (!confirm('حذف الصفحة؟')) return;
+  await apiFetch(`/api/pages/${id}`, { method:'DELETE' });
+  toast('تم حذف الصفحة'); loadAll();
+}
+
+// ── Add Page Modal ──
+function showAddPage() { document.getElementById('add-page-modal').classList.add('show'); }
+function hideAddPage() { document.getElementById('add-page-modal').classList.remove('show'); }
+document.getElementById('add-page-modal').addEventListener('click', function(e){ if(e.target===this) hideAddPage(); });
+
+async function handleAddPage() {
+  const name  = document.getElementById('np-name').value.trim();
+  const pageId = document.getElementById('np-id').value.trim();
+  const token = document.getElementById('np-token').value.trim();
+  if (!name||!pageId||!token) return toast('اكتب كل البيانات!', 'error');
+
+  const btn = document.getElementById('add-page-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> جاري التحقق...';
+
+  const verify = await apiFetch('/api/pages/verify', { method:'POST', body: JSON.stringify({ pageId, token }) });
+  if (!verify.success) {
+    btn.disabled = false; btn.innerHTML = '✅ تحقق وأضف الصفحة';
+    return toast('Token خاطئ: ' + (verify.error||''), 'error');
+  }
+  const res = await apiFetch('/api/pages', { method:'POST', body: JSON.stringify({ name, pageId, token }) });
+  btn.disabled = false; btn.innerHTML = '✅ تحقق وأضف الصفحة';
+  if (res.error) return toast('حصل خطأ!', 'error');
+  toast(`✅ تم إضافة "${verify.page?.name||name}" بنجاح`);
+  document.getElementById('np-name').value = '';
+  document.getElementById('np-id').value = '';
+  document.getElementById('np-token').value = '';
+  hideAddPage(); loadAll();
+}
+
+// ── Init ──
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('post-date').value = today;
+checkHealth();
+loadAll();
+setInterval(loadAll, 30000);
+setInterval(checkHealth, 60000);
+</script>
+</body>
+</html>
