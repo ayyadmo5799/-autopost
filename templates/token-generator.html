@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مولّد التوكن الدائم</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#070b14;--card:#0d1423;--card2:#111827;--border:rgba(99,179,237,.15);--blue:#3b82f6;--cyan:#06b6d4;--green:#10b981;--red:#ef4444;--text:#e2e8f0;--muted:#64748b}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(59,130,246,.12),transparent),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(6,182,212,.08),transparent);pointer-events:none;z-index:0}
+.container{max-width:620px;margin:0 auto;padding:24px 16px;position:relative;z-index:1}
+.header{text-align:center;margin-bottom:36px;padding-top:20px}
+.header-icon{width:68px;height:68px;border-radius:18px;background:linear-gradient(135deg,#1877F2,#0c5ccc);display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 14px;box-shadow:0 0 40px rgba(24,119,242,.4)}
+.header h1{font-size:24px;font-weight:900;color:#fff;margin-bottom:6px}
+.header p{font-size:13px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;animation:fadeUp .4s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.card-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.card-num{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;flex-shrink:0}
+.card-title{font-size:15px;font-weight:700;color:#fff}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px 16px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:14px;transition:.2s}
+.field input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.field input::placeholder{color:var(--muted)}
+.btn{width:100%;padding:14px;border-radius:12px;border:none;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff;box-shadow:0 4px 20px rgba(59,130,246,.3)}
+.info-box{background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:rgba(251,191,36,.8);line-height:1.8}
+.error-box{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:14px;margin-top:12px;font-size:13px;color:var(--red);display:none}
+.error-box.show{display:block}
+.loading{display:none;text-align:center;padding:20px;color:var(--muted)}
+.loading.show{display:block}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.result-card{background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(6,182,212,.05));border:1px solid rgba(16,185,129,.3);border-radius:20px;padding:24px;margin-bottom:16px;display:none;animation:fadeUp .4s ease both}
+.result-card.show{display:block}
+.result-title{font-size:14px;font-weight:700;color:var(--green);margin-bottom:16px}
+.page-item{background:rgba(0,0,0,.3);border:1px solid rgba(16,185,129,.15);border-radius:14px;padding:16px;margin-bottom:10px}
+.page-name{font-weight:700;font-size:15px;margin-bottom:4px}
+.page-id{font-size:11px;color:var(--muted);margin-bottom:10px}
+.token-box{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px;margin-bottom:10px}
+.token-label{font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600}
+.token-value{font-size:10px;color:var(--green);word-break:break-all;line-height:1.7;font-family:monospace}
+.copy-btn{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.1);color:var(--green);font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s}
+.copy-btn:hover{background:rgba(16,185,129,.2)}
+.warning{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:12px 14px;margin-top:16px;font-size:12px;color:rgba(239,68,68,.8);line-height:1.8}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;display:none;z-index:100;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="header-icon">🔑</div>
+    <h1>مولّد التوكن الدائم</h1>
+    <p>احصل على Page Token دائم لصفحاتك في ثوانٍ</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">١</div>
+      <div>
+        <div class="card-title">أدخل بيانات التطبيق والتوكن</div>
+        <div class="card-sub">من developers.facebook.com</div>
+      </div>
+    </div>
+    <div class="info-box">
+      📌 App ID و App Secret: من developers.facebook.com/apps ← Settings ← Basic<br>
+      📌 User Token: من developers.facebook.com/tools/explorer ← Generate Access Token
+    </div>
+    <div class="field">
+      <label>App ID</label>
+      <input type="text" id="appId" placeholder="مثال: 1975921583315874" inputmode="numeric">
+    </div>
+    <div class="field">
+      <label>App Secret</label>
+      <input type="password" id="appSecret" placeholder="مثال: 0bc8b318b...">
+    </div>
+    <div class="field">
+      <label>User Token (من Graph Explorer)</label>
+      <input type="password" id="userToken" placeholder="EAABsb...">
+    </div>
+    <button class="btn btn-primary" onclick="generateTokens()">🚀 توليد التوكنات الدائمة</button>
+    <div class="loading" id="loading"><div class="spinner"></div><div>جارٍ توليد التوكنات...</div></div>
+    <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-title">✅ تم توليد التوكنات بنجاح!</div>
+    <div id="pagesList"></div>
+    <div class="warning">🔐 هذه التوكنات دائمة — احفظها في مكان آمن<br>⚠️ لا تشاركها مع أي شخص</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://fb-publisher-production.up.railway.app';
+let allPages = [];
+
+async function generateTokens(){
+  const appId = document.getElementById('appId').value.trim();
+  const appSecret = document.getElementById('appSecret').value.trim();
+  const userToken = document.getElementById('userToken').value.trim();
+  if(!appId||!appSecret||!userToken){showToast('⚠️ أدخل جميع البيانات','#ef4444');return;}
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('errorBox').classList.remove('show');
+  document.getElementById('resultCard').classList.remove('show');
+  try {
+    const r = await fetch(API+'/api/get_page_tokens',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({app_id:appId,app_secret:appSecret,user_token:userToken})
+    });
+    const data = await r.json();
+    document.getElementById('loading').classList.remove('show');
+    if(!data.success){
+      const e=document.getElementById('errorBox');
+      e.textContent='❌ '+data.error;e.classList.add('show');return;
+    }
+    allPages=data.pages;
+    document.getElementById('pagesList').innerHTML=data.pages.map(p=>`
+      <div class="page-item">
+        <div class="page-name">📄 ${p.name}</div>
+        <div class="page-id">Page ID: ${p.id}</div>
+        <div class="token-box">
+          <div class="token-label">🔑 Token الدائم</div>
+          <div class="token-value">${p.token}</div>
+        </div>
+        <button class="copy-btn" onclick="copyToken('${p.id}','${p.name}')">📋 نسخ التوكن</button>
+      </div>
+    `).join('');
+    document.getElementById('resultCard').classList.add('show');
+  } catch(e){
+    document.getElementById('loading').classList.remove('show');
+    const eb=document.getElementById('errorBox');
+    eb.textContent='❌ تعذر الاتصال بالخادم — تأكد من تشغيل موقعك على Railway';
+    eb.classList.add('show');
+  }
+}
+
+function copyToken(pageId,pageName){
+  const p=allPages.find(x=>x.id===pageId);
+  if(!p)return;
+  navigator.clipboard.writeText(p.token).then(()=>showToast('✅ تم نسخ توكن "'+pageName+'"'));
+}
+
+function showToast(msg,color='#10b981'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.background=color;t.style.display='block';
+  clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.display='none',3000);
+}
+</script>
+</body>
+</html>
